@@ -6,7 +6,14 @@ dotenv.config()
 const schema = Joi.object({
   NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
   PORT: Joi.number().default(5000),
-  MONGO_URI: Joi.string().required().description('MongoDB connection string'),
+  // In development/test, omit or leave empty to use the in-memory Mongo fallback (see config/db.js).
+  MONGO_URI: Joi.string()
+    .allow('')
+    .when('NODE_ENV', {
+      is: 'production',
+      then: Joi.string().required().min(1).description('MongoDB connection string'),
+      otherwise: Joi.optional().allow(''),
+    }),
   JWT_SECRET: Joi.string().min(16).required(),
   JWT_EXPIRES_IN: Joi.string().default('7d'),
   CLIENT_URL: Joi.string().default('http://localhost:5173'),
@@ -27,7 +34,7 @@ export const env = {
   isProd: value.NODE_ENV === 'production',
   isDev: value.NODE_ENV === 'development',
   port: Number(value.PORT),
-  mongoUri: value.MONGO_URI,
+  mongoUri: value.MONGO_URI || '',
   jwtSecret: value.JWT_SECRET,
   jwtExpiresIn: value.JWT_EXPIRES_IN,
   clientUrl: value.CLIENT_URL,
