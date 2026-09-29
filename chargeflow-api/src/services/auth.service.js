@@ -4,7 +4,7 @@ import { signAccessToken } from '../utils/jwt.js'
 import crypto from 'crypto'
 import { env } from '../config/env.js'
 
-export async function signup({ name, email, password, phone }) {
+export async function signup({ name, email, password, phone, role = 'user' }) {
   const existing = await User.findOne({ email: email.toLowerCase() })
   if (existing) throw ApiError.conflict('An account with this email already exists', 'EMAIL_TAKEN')
 
@@ -14,8 +14,10 @@ export async function signup({ name, email, password, phone }) {
     email,
     passwordHash,
     phone,
+    role,
     avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=10b981`,
   })
+
 
   const token = signAccessToken({ userId: user.id, role: user.role })
   return { user: user.toJSON(), token }
