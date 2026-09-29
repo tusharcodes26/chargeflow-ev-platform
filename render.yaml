@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: chargeflow-api
+    env: node
+    rootDir: chargeflow-api
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5050
+      - key: MONGO_URI
+        value: mongodb+srv://tchhabra2611_db_user:legendary7@cluster0.vwrxbbf.mongodb.net/chargeflow?retryWrites=true&w=majority
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        value: https://chargeflow-web.vercel.app
