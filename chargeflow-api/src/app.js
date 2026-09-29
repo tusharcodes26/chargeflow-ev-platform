@@ -49,8 +49,10 @@ export function buildApp() {
   app.get('/healthz', (_req, res) => res.json({ ok: true, ts: Date.now() }))
   app.get('/readyz', (_req, res) => res.json({ ok: true }))
 
-  // ── API ──────────────────────────────────────────────────────────────────
+  // ── API (supports both /api and root routes) ───────────────────────────────
   app.use('/api', routes)
+  app.use('/', routes)
+
 
   // ── 404 + error handler ──────────────────────────────────────────────────
   app.use(notFound)
