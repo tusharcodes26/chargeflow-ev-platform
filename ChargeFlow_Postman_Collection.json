@@ -1,0 +1,207 @@
+{
+	"info": {
+		"_postman_id": "chargeflow-ev-api-collection",
+		"name": "ChargeFlow EV Platform API",
+		"description": "Postman Collection for ChargeFlow EV Station Management Platform",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register Admin Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Super Admin\",\n  \"email\": \"admin.tushar@chargeflow.dev\",\n  \"password\": \"AdminPassword123!\",\n  \"phone\": \"+919876543210\",\n  \"role\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/signup",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "signup"]
+						}
+					}
+				},
+				{
+					"name": "Admin Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.token) {",
+									"    pm.environment.set('token', jsonData.data.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@chargeflow.dev\",\n  \"password\": \"demo1234\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/login",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "login"]
+						}
+					}
+				},
+				{
+					"name": "User Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.token) {",
+									"    pm.environment.set('token', jsonData.data.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"sahib@chargeflow.dev\",\n  \"password\": \"demo1234\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Get User Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/auth/me",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "me"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin Management",
+			"item": [
+				{
+					"name": "List All Stations (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/admin/stations",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "stations"]
+						}
+					}
+				},
+				{
+					"name": "Create Station (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Vercel Hub Express\",\n  \"address\": \"Sector 62, Noida, UP\",\n  \"lat\": 28.6271,\n  \"lng\": 77.3727,\n  \"pricingPerKWh\": 15,\n  \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/stations",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "stations"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Public Stations",
+			"item": [
+				{
+					"name": "Get Stations List",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/stations",
+							"host": ["{{base_url}}"],
+							"path": ["stations"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:5050/api",
+			"type": "string"
+		}
+	]
+}
