@@ -1,90 +1,127 @@
-# ⚡ ChargeFlow
+# ⚡ ChargeFlow — EV Charging Station Management Platform
 
-**ChargeFlow** is a full-stack EV Charging Station Management platform that helps users discover charging stations, reserve chargers, start/stop charging sessions in real-time, and track charging analytics. It also includes an admin dashboard for station, charger, user, session, and revenue management.
+**ChargeFlow** is a modern, full-stack EV Charging Station Management platform that enables EV drivers to discover charging stations, reserve chargers, manage real-time charging sessions, and track charging history. It also features a comprehensive Operator Admin Dashboard for station, charger, user, session, and revenue analytics.
 
 ---
 
 ## 🏗️ Repository Architecture
 
-This repository is organized as a monorepo containing two main packages:
+This repository is organized as a monorepo containing two core packages:
 
-* **[chargeflow-api](./chargeflow-api)**: Express.js backend REST API, MongoDB/Mongoose database integration, and Socket.io realtime servers.
-* **[chargeflow-web](./chargeflow-web)**: React + Vite frontend SPA with Leaflet maps and interactive dashboard styles.
+* **[`chargeflow-web`](./chargeflow-web)**: React 18 + Vite 5 frontend single-page application (SPA) with interactive Leaflet maps, dynamic filtering, real-time WebSocket updates, and sleek dark UI.
+* **[`chargeflow-api`](./chargeflow-api)**: Express.js REST API with MongoDB (Mongoose), Socket.io real-time server, JWT authentication, and Joi schema validation.
 
 ---
 
 ## 🛠️ Technology Stack
 
-* **Frontend**: React 18, Vite 5, Tailwind CSS 3, React Router 6, Axios, Leaflet maps, Socket.io client.
-* **Backend**: Node.js, Express.js, MongoDB (via Mongoose), Socket.io, JWT authentication, Joi schema validation.
-* **Database**: MongoDB (Atlas cloud cluster or in-memory MongoDB fallback in development).
+* **Frontend**: React 18, Vite 5, Tailwind CSS 3, Framer Motion, Lucide Icons, Leaflet Maps, Socket.io Client, Axios.
+* **Backend**: Node.js, Express.js, MongoDB Atlas (Mongoose ORM) with in-memory MongoDB fallback for local development, Socket.io, JWT Auth, Joi Validation, Helmet, Rate Limiter.
+* **Testing & Tools**: Postman API Collection, Vercel Serverless Function entry point, Render Blueprint configuration.
 
 ---
 
-## 🚀 Quick Start Guide
+## 🔑 Demo Accounts
 
-To run this project locally, execute the following steps:
+All pre-seeded demo accounts use the password: **`demo1234`**
 
-### 1. Prerequisite
-Ensure you have **Node.js v20+** installed on your system.
+| Role | Email | Features |
+| :--- | :--- | :--- |
+| **Driver / User** | `sahib@chargeflow.dev` | View stations, reserve chargers, vehicle management, session history |
+| **Driver / User** | `demo@chargeflow.dev` | Demo user profile & active charging sessions |
+| **Admin / Operator** | `admin@chargeflow.dev` | Full management dashboard, station & charger management, analytics |
+
+---
+
+## 🚀 Quick Start Guide (Local Development)
+
+### 1. Prerequisites
+* **Node.js v20+** installed on your system.
 
 ### 2. Install Dependencies
-Run the install command inside both directories:
 
 ```bash
 # Install backend dependencies
 cd chargeflow-api
 npm install
 
-# Install frontend dependencies (in a new terminal or after navigating back)
+# Install frontend dependencies
 cd ../chargeflow-web
 npm install
 ```
 
-### 3. Seed the Database
-To populate your database with mock stations, chargers, users, and dummy bookings, run the seed command inside the backend folder:
+### 3. Database Seeding
+
+To populate your database (MongoDB Atlas or local in-memory MongoDB) with stations, chargers, users, and dummy bookings:
 
 ```bash
-cd ../chargeflow-api
+cd chargeflow-api
 npm run seed
 ```
 
-This seeds the system with three default accounts (password for all is `demo1234`):
-* **User/Driver**: `sahib@chargeflow.dev`
-* **User/Driver**: `demo@chargeflow.dev`
-* **Admin/Operator**: `admin@chargeflow.dev`
-
 ---
 
-## 🏃 Running the Project
+## 🏃 Running the Application
 
-Open two separate terminal windows or split your IDE terminal:
+Open two terminal windows:
 
 ### Terminal 1: Start Backend API
 ```bash
 cd chargeflow-api
 npm run dev
 ```
-* The backend API server will run on port `5050` (`http://localhost:5050`).
-* Note: If you do not have MongoDB running locally, the server automatically spins up a local **in-memory MongoDB database** in development mode if the `MONGO_URI` variable is omitted or cleared from `.env`.
+* Backend API server runs on **`http://localhost:5050`**.
+* *Note: If `MONGO_URI` is left blank in `.env`, the server automatically spins up an in-memory MongoDB server for local development.*
 
 ### Terminal 2: Start Frontend Web App
 ```bash
 cd chargeflow-web
 npm run dev
 ```
-* Open your browser and navigate to **`http://localhost:5173`** to access the web app.
+* Open your browser and navigate to **`http://localhost:5173`**.
 
 ---
 
-## 🔒 Configuration & Environment Variables
+## 🌐 Deployment Guide (Vercel)
 
-If you need to customize ports or database settings, modify the `.env` files:
+Both the frontend web app and backend REST API are fully configured for Vercel deployment.
 
-* **[chargeflow-api/.env](./chargeflow-api/.env)**:
-  * `PORT=5050`
-  * `MONGO_URI` (MongoDB connection string)
-  * `JWT_SECRET` (used for JWT signature validation)
-* **[chargeflow-web/.env](./chargeflow-web/.env)**:
-  * `VITE_API_URL=http://localhost:5050/api`
-  * `VITE_SOCKET_URL=http://localhost:5050`
+### Step 1: Deploy Backend API (`chargeflow-api`)
+1. Go to [Vercel.com](https://vercel.com) ➔ **Add New Project**.
+2. Select your repository: **`tusharcodes26/chargeflow-ev-platform`**.
+3. Set **Root Directory** to `chargeflow-api`.
+4. Set **Framework Preset**: `Other`.
+5. Add Environment Variables:
+   * `NODE_ENV`: `production`
+   * `MONGO_URI`: `mongodb+srv://<user>:<password>@cluster0.vwrxbbf.mongodb.net/chargeflow?retryWrites=true&w=majority`
+   * `JWT_SECRET`: `your_random_secret_string`
+   * `CLIENT_URL`: `*`
+6. Click **Deploy** and copy your live API URL (e.g. `https://chargeflow-api.vercel.app`).
+
+### Step 2: Deploy Frontend Web App (`chargeflow-web`)
+1. Click **Add New Project** on Vercel again.
+2. Select the repository **`tusharcodes26/chargeflow-ev-platform`**.
+3. Set **Root Directory** to `chargeflow-web`.
+4. Set **Framework Preset**: `Vite`.
+5. Add Environment Variables:
+   * `VITE_API_URL`: `https://<YOUR-API-URL>/api`
+   * `VITE_SOCKET_URL`: `https://<YOUR-API-URL>`
+6. Click **Deploy**.
+
+---
+
+## 📮 Postman API Collection
+
+A ready-to-import Postman Collection is included in the repository:
+* File path: **[`ChargeFlow_Postman_Collection.json`](./ChargeFlow_Postman_Collection.json)**
+
+### How to use in Postman:
+1. Open Postman ➔ Click **Import**.
+2. Drag and drop `ChargeFlow_Postman_Collection.json`.
+3. Use pre-configured requests for `Register Admin`, `Admin Login`, `User Login`, `List Stations`, and `Create Station`.
+
+---
+
+## 📜 License
+
+This project is licensed under the MIT License.

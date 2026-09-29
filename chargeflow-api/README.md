@@ -1,152 +1,77 @@
 # ChargeFlow API
 
-Backend for **ChargeFlow** — EV Charging Station Management System.
+Express.js REST API and Socket.io Real-time Backend for **ChargeFlow** — EV Charging Station Management Platform.
 
-Node.js + Express + MongoDB + Socket.io + JWT.
+---
 
-## Quick start (macOS)
+## 🛠️ Features
 
-### 1. Install Node 20+ via Homebrew + nvm
+* **Authentication**: JWT authentication with user, operator, and admin role-based authorization.
+* **Database**: MongoDB integration via Mongoose ORM with automatic in-memory MongoDB fallback in development.
+* **Stations & Chargers**: Station discovery, spatial geo-queries, status tracking (Available, Occupied, Reserved, Offline).
+* **Bookings & Sessions**: Charger reservation system, session start/stop, charging progress tracking.
+* **Admin Management**: Operator dashboard endpoints for station/charger management, user blocking, and revenue analytics.
+* **Real-time Engine**: Socket.io server for live charger state updates.
+* **Vercel Serverless Ready**: Configured with Vercel serverless function handler (`api/index.js`).
+
+---
+
+## 🚀 Quick Start
+
+### 1. Environment Setup
+Copy `.env.example` to `.env`:
+
 ```bash
-brew install nvm
-mkdir -p ~/.nvm
-echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.zshrc
-echo '[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && . "/opt/homebrew/opt/nvm/nvm.sh"' >> ~/.zshrc
-source ~/.zshrc
-nvm install --lts
-nvm use --lts
-```
-
-### 2. MongoDB — pick one
-
-**Option A — Local MongoDB (Homebrew)**
-```bash
-brew tap mongodb/brew
-brew install mongodb-community@7.0
-brew services start mongodb-community@7.0
-# default URI: mongodb://127.0.0.1:27017/chargeflow
-```
-
-**Option B — MongoDB Atlas (cloud, free tier)**
-1. Create a free cluster at https://cloud.mongodb.com
-2. Create a database user
-3. Whitelist your IP (or `0.0.0.0/0` for dev)
-4. Copy the connection string and paste it into `.env` as `MONGO_URI`
-
-### 3. Configure & install
-```bash
-cd chargeflow-api
 cp .env.example .env
-# edit .env — set MONGO_URI and JWT_SECRET
+```
+
+Environment variables inside `.env`:
+
+```env
+NODE_ENV=development
+PORT=5050
+MONGO_URI=mongodb+srv://<user>:<password>@cluster0.vwrxbbf.mongodb.net/chargeflow?retryWrites=true&w=majority
+JWT_SECRET=replace_me_with_a_long_random_string_at_least_32_chars
+JWT_EXPIRES_IN=7d
+CLIENT_URL=http://localhost:5173
+```
+
+*(Note: If `MONGO_URI` is left blank or omitted, the server will boot an in-memory MongoDB instance automatically in development mode).*
+
+### 2. Install Dependencies
+```bash
 npm install
 ```
 
-### 4. Seed the database
+### 3. Seed Database
+Populate database with sample stations, chargers, users, and dummy bookings:
+
 ```bash
-npm run seed          # upsert sample data
-npm run seed:reset    # drops collections first, then seeds
+npm run seed
 ```
 
-This creates:
-- 2 demo users (`sahib@chargeflow.dev` / `demo@chargeflow.dev`, password `demo1234`)
-- 6 stations matching the frontend mock data
-- 16 chargers across those stations
-- 1 sample upcoming booking
-
-### 5. Run
+### 4. Start Development Server
 ```bash
-npm run dev   # nodemon, hot reload
-# or
-npm start     # plain node
+npm run dev
 ```
 
-API: http://localhost:5000
-Health: http://localhost:5000/healthz
-Socket.io: ws://localhost:5000
+The API will start listening at **`http://localhost:5050`**.
 
-### 6. Test the API
-```bash
-# Full automated endpoint smoke test (recommended)
-npm run api:smoke
+---
 
-# Sign up
-curl -X POST http://localhost:5000/api/auth/signup \
-  -H 'Content-Type: application/json' \
-  -d '{"name":"Test User","email":"test@example.com","password":"test1234"}'
+## 📮 API Documentation & Postman Collection
 
-# Log in (use seed credentials)
-curl -X POST http://localhost:5000/api/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"sahib@chargeflow.dev","password":"demo1234"}'
+Import the included Postman Collection file located at root:
+`../ChargeFlow_Postman_Collection.json`
 
-# List stations
-curl http://localhost:5000/api/stations
+### Key Endpoints Overview
 
-# Get one station with chargers
-curl http://localhost:5000/api/stations/<stationId>
-
-# Authenticated: my bookings
-TOKEN="<paste-from-login>"
-curl http://localhost:5000/api/bookings/my -H "Authorization: Bearer $TOKEN"
-```
-
-## Folder structure
-
-```
-src/
-├── config/       env, db, socket
-├── controllers/  thin HTTP handlers
-├── models/       Mongoose schemas
-├── routes/       per-resource routers + Joi validators
-├── middleware/   auth, error, request logger, validate
-├── services/     business logic (booking conflicts, sessions)
-├── sockets/      Socket.io connection + auth + event emitters
-├── utils/        ApiError, asyncHandler, jwt, logger
-├── app.js        Express app
-└── server.js     HTTP + Socket.io bootstrap
-scripts/
-└── seed.js       data seeder
-```
-
-## API endpoints
-
-| Method | Endpoint | Auth | Notes |
-|---|---|---|---|
-| POST | `/api/auth/signup` | — | `{ name, email, password }` |
-| POST | `/api/auth/login` | — | `{ email, password }` |
-| GET | `/api/auth/me` | ✓ | current user |
-| GET | `/api/stations` | — | list with pagination + search |
-| GET | `/api/stations/:id` | — | single station, populated with chargers |
-| GET | `/api/stations/:id/chargers` | — | chargers at station |
-| POST | `/api/bookings` | ✓ | conflict-checked, sets charger to RESERVED |
-| GET | `/api/bookings/my` | ✓ | current user's bookings |
-| DELETE | `/api/bookings/:id` | ✓ | cancel booking; releases charger |
-| POST | `/api/sessions/start` | ✓ | start charging — sets OCCUPIED |
-| POST | `/api/sessions/:id/stop` | ✓ | stop charging — sets AVAILABLE |
-| GET | `/api/sessions/active` | ✓ | current user's active session |
-
-## Real-time events (Socket.io)
-
-Connect with JWT in handshake:
-```js
-io('http://localhost:5000', { auth: { token } })
-```
-
-Server → client:
-- `chargerStatusUpdate` — `{ chargerId, stationId, status }`
-- `bookingCreated` — `{ booking }`
-- `chargingStarted` — `{ session }`
-- `chargingStopped` — `{ session }`
-
-## Booking conflict logic
-
-Overlap rule: two intervals `[a, b)` and `[c, d)` overlap iff `a < d` and `b > c`.
-
-Mongo query:
-```js
-{ charger, status: { $in: ['CONFIRMED','PENDING','IN_PROGRESS'] },
-  startTime: { $lt: newEnd },
-  endTime:   { $gt: newStart } }
-```
-
-If any doc matches → reject with `409 BOOKING_CONFLICT`.
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/auth/signup` | Register user or admin (`"role": "admin"`) | No |
+| `POST` | `/api/auth/login` | Driver user login | No |
+| `POST` | `/api/admin/login` | Operator / Admin login | No |
+| `GET` | `/api/auth/me` | Current user profile | Yes (Bearer Token) |
+| `GET` | `/api/stations` | List stations with search & filters | No |
+| `GET` | `/api/admin/stations` | List stations (Admin view) | Yes (Admin) |
+| `POST` | `/api/admin/stations` | Create new charging station | Yes (Admin) |
