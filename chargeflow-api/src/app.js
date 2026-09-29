@@ -20,12 +20,13 @@ export function buildApp() {
   app.use(
     cors({
       origin: (origin, cb) => {
-        // allow no-origin (curl, server-to-server) and any whitelisted origin
-        if (!origin || env.corsOrigins.includes(origin)) return cb(null, true)
+        // allow no-origin (curl/server-to-server), exact whitelist, wildcard '*', or any *.vercel.app domain
+        if (!origin || env.corsOrigins.includes('*') || env.corsOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) return cb(null, true)
         cb(new Error(`CORS: origin not allowed: ${origin}`))
       },
       credentials: true,
     }),
+
   )
   app.use(express.json({ limit: '1mb' }))
   app.use(express.urlencoded({ extended: true }))
