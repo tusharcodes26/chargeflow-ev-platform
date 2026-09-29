@@ -413,21 +413,31 @@ async function upsertSampleSessions(users) {
   logger.info(`[seed] demo sessions upserted (${docs.length})`)
 }
 
-async function run() {
-  logger.info(`[seed] connecting to ${env.mongoUri.replace(/:\/\/[^@]+@/, '://***@')}`)
-  await connectDB()
-  if (RESET) await reset()
+import { fileURLToPath } from 'node:url'
+
+export async function seedDatabase({ reset: doReset = false } = {}) {
+  if (doReset) await reset()
   const users = await upsertUsers()
   await upsertStationsAndChargers()
   await upsertSampleBooking(users)
   await upsertSampleSessions(users)
   await mongoose.connection.syncIndexes()
   logger.info('[seed] done ✅')
+}
+
+async function run() {
+  logger.info(`[seed] connecting to ${env.mongoUri.replace(/:\/\/[^@]+@/, '://***@')}`)
+  await connectDB()
+  await seedDatabase({ reset: RESET })
   await disconnectDB()
 }
 
-run().catch(async (err) => {
-  logger.error('[seed] failed', err)
-  await disconnectDB().catch(() => {})
-  process.exit(1)
-})
+const isDirectRun = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]
+if (isDirectRun) {
+  run().catch(async (err) => {
+    logger.error('[seed] failed', err)
+    await disconnectDB().catch(() => {})
+    process.exit(1)
+  })
+}
+

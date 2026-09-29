@@ -1,6 +1,6 @@
 import http from 'node:http'
 import { env } from './config/env.js'
-import { connectDB, disconnectDB } from './config/db.js'
+import { connectDB, disconnectDB, isMemoryServer } from './config/db.js'
 import { logger } from './utils/logger.js'
 import { buildApp } from './app.js'
 import { initSocket } from './sockets/index.js'
@@ -8,9 +8,19 @@ import { initSocket } from './sockets/index.js'
 async function start() {
   await connectDB()
 
+  if (isMemoryServer()) {
+    try {
+      const { seedDatabase } = await import('../scripts/seed.js')
+      await seedDatabase()
+    } catch (err) {
+      logger.error('[server] auto-seed failed:', err)
+    }
+  }
+
   const app = buildApp()
   const server = http.createServer(app)
   initSocket(server)
+
 
   server.listen(env.port, () => {
     logger.info(`[server] ChargeFlow API listening on http://localhost:${env.port} (${env.nodeEnv})`)
